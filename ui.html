@@ -1,0 +1,82 @@
+<p>New width: <input id="new-width" type="number" value="240" min="128"></p>
+<button id="change-width">Set width of all selected</button>
+<p id="error-text-top"></p>
+<hr>
+<p id="length-selection">Width of selection: </p>
+<hr>
+<p>Spacing: <input id="spacing" type="number" value="10"></p>
+<p>Max width of grid: <input id="max-width" type="number" value="5" min="1"></p>
+<button id="on-selected">Tidy selected sticky notes</button>
+<p id="error-text-bottom"></p>
+
+
+<script>
+  var len = 0
+  document.getElementById('length-selection').innerText = "Length of selection: " + len
+
+
+  document.getElementById('change-width').onclick = () => {
+    const newWidthTB = document.getElementById('new-width');
+    var width = parseInt(newWidthTB.value, 10);
+    if (width < 128 || isNaN(width)) {
+      document.getElementById("error-text-top").innerText = "Please enter a number larger than 127";
+      width = 240;
+      document.getElementById('new-width').value = 240;
+    } else {
+      document.getElementById("error-text-top").innerText = "";
+      parent.postMessage({
+        pluginMessage: {
+          type: 'change-width',
+          width: width,
+        }
+      }, '*')
+
+    }
+
+
+  }
+
+  document.getElementById('on-selected').onclick = () => {
+    const spacingTB = document.getElementById('spacing');
+    var spacing = parseInt(spacingTB.value, 10);
+    if (isNaN(spacing)) {
+      spacing = 1;
+      document.getElementById('spacing').value = 10;
+    }
+
+    const widthTB = document.getElementById('max-width');
+    var maxWidth = parseInt(widthTB.value, 10);
+    if (maxWidth < 1 || isNaN(maxWidth)) {
+      maxWidth = 1;
+      document.getElementById('max-width').value = 1;
+    }
+
+
+    parent.postMessage({
+      pluginMessage: {
+        type: 'on-selected',
+        spacing: spacing,
+        maxWidth: maxWidth,
+      }
+    }, '*')
+  }
+
+
+  onmessage = (event) => {
+    if (event.data.pluginMessage.msg === "new-selection") {
+      len = event.data.pluginMessage.len
+      document.getElementById('length-selection').innerText = "Width of selection: " + len
+
+      if (!event.data.pluginMessage.allEqual) {
+        document.getElementById('on-selected').disabled = true;
+        document.getElementById('error-text-bottom').innerText =
+          "You can only tidy if all selected sticky notes are the same width";
+
+      } else {
+        document.getElementById('on-selected').disabled = false;
+        document.getElementById('error-text-bottom').innerText = "";
+
+      }
+    }
+  }
+</script>
